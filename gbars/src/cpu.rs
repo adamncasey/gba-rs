@@ -1,5 +1,5 @@
-use crate::memory::Memory;
 use crate::instruction::Instruction;
+use crate::memory::Memory;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Cpu {
@@ -10,10 +10,16 @@ pub struct Cpu {
     r3: u32,
     r4: u32,
     r5: u32,
-
+    r6: u32,
+    r7: u32,
+    r8: u32,
+    r9: u32,
+    r10: u32,
+    r11: u32,
+    r12: u32,
     r13: u32, // sp
     r14: u32, // lr
-    r15_pc: u32,
+    pub r15: u32, // pc
     cpsr: u32,
 
     // internal state
@@ -37,19 +43,52 @@ pub enum Register {
     R3,
     R4,
     R5,
-
+    R6,
+    R7,
+    R8,
+    R9,
+    R10,
+    R11,
+    R12,
     R13,
     R14,
     R15,
 }
 
 impl Cpu {
+    pub fn new() -> Cpu {
+        Cpu {
+            state: CpuState::Arm,
+            r0: 0,
+            r1: 0,
+            r2: 0,
+            r3: 0,
+            r4: 0,
+            r5: 0,
+            r6: 0,
+            r7: 0,
+            r8: 0,
+            r9: 0,
+            r10: 0,
+            r11: 0,
+            r12: 0,
+            r13: 0, // sp
+            r14: 0, // lr
+            r15: 0, // pc
+            cpsr: 0,
+
+            // internal state
+            fetched: 0, // Could be 16- or 32-bits (thumb/arm)
+            decoded: 0,
+        }
+    }
+
     pub fn cycle(&mut self, mem: &mut Memory) {
         let prev_fetched = self.fetched;
         let prev_decoded = self.decoded;
 
         // fetch
-        self.fetched = mem.get(self.r15_pc);
+        self.fetched = mem.get_word(self.r15);
 
         // decode
         self.decoded = prev_fetched;
@@ -57,7 +96,10 @@ impl Cpu {
         // execute
         // TODO Decode thumb
         let instr = Instruction::decode_arm(prev_decoded);
+        println!("fetched {:8x}, exec {:?}", self.fetched, instr);
 
         // TODO actually execute
+
+        self.r15 += 4;
     }
 }
