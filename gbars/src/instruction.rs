@@ -43,6 +43,21 @@ pub enum InstructionOp {
         acc_operand: Register,
         alter_condition: bool,
     },
+    MultiplyLong {
+        dest_high: Register,
+        dest_low: Register,
+        operand1: Register,
+        operand2: Register,
+        accumulate: bool,
+        signed: bool,
+        alter_condition: bool,
+    },
+    Swap {
+        source: Register,
+        dest: Register,
+        base: Register,
+        byte: bool,
+    },
     Branch {
         branch: Branch,
     },
@@ -55,6 +70,15 @@ pub enum InstructionOp {
         add_offset: bool, // false = subtract offset
         pre_index: bool,  // false = post, Add offset after transfer
         offset: Offset,
+    },
+    BlockDataTransfer {
+        base: Register,
+        load: bool, // false = store
+        write_back: bool,
+        force_psr: bool,
+        add_offset: bool,
+        pre_index: bool,
+        register_list: Vec<Register>,
     },
 }
 
@@ -164,10 +188,10 @@ fn read_instruction_op(op: u32) -> InstructionOp {
                             }
                         } else {
                             if bits[24] {
-                                unimplemented!("Swap");
+                                decode_swap(op)
                             } else {
                                 if bits[23] {
-                                    unimplemented!("Multiply Long");
+                                    decode_multiply_long(op)
                                 } else {
                                     decode_multiply(op)
                                 }
@@ -192,7 +216,7 @@ fn read_instruction_op(op: u32) -> InstructionOp {
             if bits[25] {
                 decode_branch(op)
             } else {
-                unimplemented!("Block data transfer");
+                decode_block_data_transfer(op)
             }
         }
         0b11 => {
@@ -283,6 +307,49 @@ fn decode_multiply(bits: u32) -> InstructionOp {
         accumulate: ((bits >> 21) & 0b1) != 0,
         acc_operand: read_register(((bits >> 12) & 0b1111) as u8),
         alter_condition: ((bits >> 20) & 0b1) != 0,
+    }
+}
+
+fn decode_multiply_long(bits: u32) -> InstructionOp {
+    InstructionOp::MultiplyLong {
+        dest_high: read_register(((bits >> 16) & 0b1111) as u8),
+        dest_low: read_register(((bits >> 12) & 0b1111) as u8),
+        operand1: read_register((bits & 0b1111) as u8),
+        operand2: read_register(((bits >> 8) & 0b1111) as u8),
+        accumulate: ((bits >> 21) & 0b1) != 0,
+        signed: ((bits >> 22) & 0b1) != 0,
+        alter_condition: ((bits >> 20) & 0b1) != 0,
+    }
+}
+
+fn decode_swap(bits: u32) -> InstructionOp {
+    InstructionOp::Swap {
+        source: read_register((bits & 0b1111) as u8),
+        dest: read_register(((bits >> 12) & 0b1111) as u8),
+        base: read_register(((bits >> 16) & 0b1111) as u8),
+        byte: ((bits >> 22) & 0b1) != 0,
+    }
+}
+
+fn decode_block_data_transfer(bits: u32) -> InstructionOp {
+    let mut register_list = Vec::new();
+
+    for reg in 0..=15 {
+        let mask = 0b1 << reg;
+
+        if bits & mask != 0 {
+            register_list.push(read_register(reg));
+        }
+    }
+
+    InstructionOp::BlockDataTransfer {
+        base: read_register(((bits >> 16) & 0b1111) as u8),
+        load: ((bits >> 20) & 0b1) != 0,
+        write_back: ((bits >> 21) & 0b1) != 0,
+        force_psr: ((bits >> 22) & 0b1) != 0,
+        add_offset: ((bits >> 23) & 0b1) != 0,
+        pre_index: ((bits >> 24) & 0b1) != 0,
+        register_list,
     }
 }
 
@@ -504,7 +571,25 @@ mod tests {
             instr: InstructionOp::Branch {
                 branch: Branch::Exchange {
                     register: Register::R14,
-                }
+                },
+            },
+        };
+
+        assert_eq!(instr, expected);
+    }
+    #[test]
+    fn test_b_decode() {
+        let op = 0xea000032;
+
+        let instr = Instruction::decode_arm(op);
+
+        let expected = Instruction {
+            cond: Condition::Always,
+            instr: InstructionOp::Branch {
+                branch: Branch::Offset {
+                    offset: 50,
+                    link: false,
+                },
             },
         };
 
@@ -524,13 +609,12 @@ mod tests {
                 operand2: Register::R3,
                 accumulate: false,
                 acc_operand: Register::R0,
-                alter_condition: false
+                alter_condition: false,
             },
         };
 
         assert_eq!(instr, expected);
     }
-    
     #[test]
     fn test_block_data_transfer_push_decode() {
         let op = 0xe92d4800;
@@ -539,17 +623,17 @@ mod tests {
 
         let expected = Instruction {
             cond: Condition::Always,
-            instr: InstructionOp::Multiply {
-                dest: Register::R3,
-                operand1: Register::R2,
-                operand2: Register::R3,
-                accumulate: false,
-                acc_operand: Register::R0,
-                alter_condition: false
+            instr: InstructionOp::BlockDataTransfer {
+                base: Register::R13,
+                load: false,
+                write_back: true,
+                force_psr: false,
+                add_offset: false,
+                pre_index: true,
+                register_list: vec![Register::R11, Register::R14],
             },
         };
 
         assert_eq!(instr, expected);
     }
-
 }

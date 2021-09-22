@@ -1,3 +1,5 @@
+use log::{trace};
+
 pub struct Memory {
     //todo actual memory
     mem: Vec<u8>,
@@ -22,7 +24,7 @@ impl Memory {
             | ((self.mem[(addr + 2) as usize] as u32) << 16)
             | ((self.mem[(addr + 1) as usize] as u32) << 8)
             | self.mem[(addr + 0) as usize] as u32;
-        println!("get_word {} {}", addr, result);
+        trace!("get_word {} {}", addr, result);
 
         return result;
     }

@@ -9,6 +9,8 @@ struct Opt {
 }
 
 fn main() {
+    env_logger::init();
+
     let opt = Opt::from_args();
 
     let startpc = 0x10000;

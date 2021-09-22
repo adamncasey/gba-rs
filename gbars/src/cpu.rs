@@ -1,6 +1,8 @@
 use crate::instruction::Instruction;
 use crate::memory::Memory;
 
+use log::{info, debug};
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Cpu {
     state: CpuState,
@@ -17,14 +19,14 @@ pub struct Cpu {
     r10: u32,
     r11: u32,
     r12: u32,
-    r13: u32, // sp
-    r14: u32, // lr
+    r13: u32,     // sp
+    r14: u32,     // lr
     pub r15: u32, // pc
     cpsr: u32,
 
     // internal state
-    fetched: u32, // Could be 16- or 32-bits (thumb/arm)
-    decoded: u32,
+    fetched: Option<u32>, // Could be 16- or 32-bits (thumb/arm)
+    decoded: Option<u32>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -78,8 +80,8 @@ impl Cpu {
             cpsr: 0,
 
             // internal state
-            fetched: 0, // Could be 16- or 32-bits (thumb/arm)
-            decoded: 0,
+            fetched: None, // Could be 16- or 32-bits (thumb/arm)
+            decoded: None,
         }
     }
 
@@ -88,15 +90,20 @@ impl Cpu {
         let prev_decoded = self.decoded;
 
         // fetch
-        self.fetched = mem.get_word(self.r15);
+        let new_fetch = mem.get_word(self.r15);
+        self.fetched = Some(new_fetch);
 
         // decode
         self.decoded = prev_fetched;
 
-        // execute
-        // TODO Decode thumb
-        let instr = Instruction::decode_arm(prev_decoded);
-        println!("fetched {:8x}, exec {:?}", self.fetched, instr);
+        if let Some(prev_decoded) = prev_decoded {
+            // execute
+            // TODO Decode thumb
+            let instr = Instruction::decode_arm(prev_decoded);
+            info!("fetched {:8x}, exec {:?}", new_fetch, instr);
+        } else {
+            debug!("No execute");
+        }
 
         // TODO actually execute
 
