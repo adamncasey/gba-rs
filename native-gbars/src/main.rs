@@ -5,6 +5,7 @@ use std::fs;
 
 #[derive(Debug, StructOpt)]
 struct Opt {
+    bios: String,
     rom: String,
 }
 
@@ -16,9 +17,10 @@ fn main() {
     let startpc = 0x10000;
     let decode_length = 100;
 
-    let data = fs::read(opt.rom).expect("Unable to read file");
+    let bios_data = fs::read(opt.bios).expect("Unable to read bios file");
+    let rom_data = fs::read(opt.rom).expect("Unable to read rom file");
 
-    let mut mem = Memory::new_with_rom(data);
+    let mut mem = Memory::new_with_bios_and_rom(bios_data, rom_data);
 
     let mut cpu = Cpu::new();
     cpu.r15 = startpc;

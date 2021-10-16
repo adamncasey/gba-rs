@@ -8,3 +8,7 @@ edition = "2018"
 [dependencies]
 bitvec = "*"
 log = "*"
+
+[dev-dependencies]
+object = "0.26.2"
+env_logger = "*"

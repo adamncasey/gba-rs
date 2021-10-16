@@ -3,8 +3,8 @@ use bitvec::prelude::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Instruction {
-    cond: Condition,
-    instr: InstructionOp,
+    pub condition: Condition,
+    pub instruction: InstructionOp,
 }
 
 #[derive(Debug, PartialEq)]
@@ -141,8 +141,8 @@ impl Instruction {
         const CONDITION_MASK: u32 = 0b00001111_11111111_11111111_11111111;
 
         Instruction {
-            cond: read_condition((instr & !CONDITION_MASK) >> 28),
-            instr: read_instruction_op(instr & CONDITION_MASK),
+            condition: read_condition((instr & !CONDITION_MASK) >> 28),
+            instruction: read_instruction_op(instr & CONDITION_MASK),
         }
     }
 }
@@ -408,8 +408,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::DataProcessing {
+            condition: Condition::Always,
+            instruction: InstructionOp::DataProcessing {
                 opcode: DataProcessingOpCode::Add,
                 dest: Register::R3,
                 operand1: Register::R3,
@@ -431,8 +431,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::DataProcessing {
+            condition: Condition::Always,
+            instruction: InstructionOp::DataProcessing {
                 opcode: DataProcessingOpCode::Sub,
                 dest: Register::R13,
                 operand1: Register::R13,
@@ -454,8 +454,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::DataProcessing {
+            condition: Condition::Always,
+            instruction: InstructionOp::DataProcessing {
                 opcode: DataProcessingOpCode::Mov,
                 dest: Register::R3,
                 operand1: Register::R0,
@@ -477,8 +477,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::SingleDataTransfer {
+            condition: Condition::Always,
+            instruction: InstructionOp::SingleDataTransfer {
                 base: Register::R13,
                 source_dest: Register::R11,
                 load: false,
@@ -500,8 +500,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::SingleDataTransfer {
+            condition: Condition::Always,
+            instruction: InstructionOp::SingleDataTransfer {
                 base: Register::R11,
                 source_dest: Register::R3,
                 load: false,
@@ -523,8 +523,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::SingleDataTransfer {
+            condition: Condition::Always,
+            instruction: InstructionOp::SingleDataTransfer {
                 base: Register::R11,
                 source_dest: Register::R2,
                 load: true,
@@ -538,6 +538,7 @@ mod tests {
 
         assert_eq!(instr, expected);
     }
+
     #[test]
     fn test_pop_decode() {
         let op = 0xe49db004;
@@ -545,8 +546,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::SingleDataTransfer {
+            condition: Condition::Always,
+            instruction: InstructionOp::SingleDataTransfer {
                 base: Register::R13,
                 source_dest: Register::R11,
                 load: true,
@@ -560,6 +561,7 @@ mod tests {
 
         assert_eq!(instr, expected);
     }
+
     #[test]
     fn test_bx_decode() {
         let op = 0xe12fff1e;
@@ -567,8 +569,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::Branch {
+            condition: Condition::Always,
+            instruction: InstructionOp::Branch {
                 branch: Branch::Exchange {
                     register: Register::R14,
                 },
@@ -577,6 +579,7 @@ mod tests {
 
         assert_eq!(instr, expected);
     }
+
     #[test]
     fn test_b_decode() {
         let op = 0xea000032;
@@ -584,8 +587,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::Branch {
+            condition: Condition::Always,
+            instruction: InstructionOp::Branch {
                 branch: Branch::Offset {
                     offset: 50,
                     link: false,
@@ -595,6 +598,7 @@ mod tests {
 
         assert_eq!(instr, expected);
     }
+
     #[test]
     fn test_mul_decode() {
         let op = 0xe0030392;
@@ -602,8 +606,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::Multiply {
+            condition: Condition::Always,
+            instruction: InstructionOp::Multiply {
                 dest: Register::R3,
                 operand1: Register::R2,
                 operand2: Register::R3,
@@ -615,6 +619,7 @@ mod tests {
 
         assert_eq!(instr, expected);
     }
+
     #[test]
     fn test_block_data_transfer_push_decode() {
         let op = 0xe92d4800;
@@ -622,8 +627,8 @@ mod tests {
         let instr = Instruction::decode_arm(op);
 
         let expected = Instruction {
-            cond: Condition::Always,
-            instr: InstructionOp::BlockDataTransfer {
+            condition: Condition::Always,
+            instruction: InstructionOp::BlockDataTransfer {
                 base: Register::R13,
                 load: false,
                 write_back: true,
