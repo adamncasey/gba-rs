@@ -1,0 +1,8 @@
+*.o
+*.sav
+*.log
+*.pdf
+target/
+*.bin
+*.gba
+*.elf
