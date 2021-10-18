@@ -36,8 +36,8 @@ impl Memory {
         }
     }
 
-    pub fn get_halfword(&self, addr: u32) -> u16 {
-        0
+    pub fn get_halfword(&self, _addr: u32) -> u16 {
+        unimplemented!("get_halfword");
     }
 
     pub fn get_word(&self, addr: u32) -> u32 {
@@ -45,7 +45,7 @@ impl Memory {
             | ((self.get_byte(addr + 2) as u32) << 16)
             | ((self.get_byte(addr + 1) as u32) << 8)
             | self.get_byte(addr + 0) as u32;
-        trace!("get_word {} {}", addr, result);
+        trace!("get_word {:8x} {:8x}", addr, result);
 
         return result;
     }
