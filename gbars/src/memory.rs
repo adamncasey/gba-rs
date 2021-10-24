@@ -30,7 +30,13 @@ impl Memory {
     pub fn get_byte(&self, addr: u32) -> u8 {
         match addr {
             0x08000000..=0x08FFFFFF => {
-                self.rom[addr as usize - 0x08000000]
+                let offset = addr as usize - 0x08000000;
+                if offset < self.rom.len() {
+                    self.rom[offset]
+                }
+                else {
+                    0
+                }
             }
             _ => 0
         }

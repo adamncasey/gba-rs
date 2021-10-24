@@ -103,7 +103,7 @@ impl Cpu {
             // execute
             // TODO Decode thumb
             let instr = Instruction::decode_arm(prev_decoded);
-            info!("fetched {:8x}, exec {:8x} {:?}", new_fetch, prev_decoded, instr);
+            info!("exec {:8x} {:?}", prev_decoded, instr);
 
             execute::execute(self, instr);
         } else {

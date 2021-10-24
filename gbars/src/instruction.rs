@@ -140,6 +140,8 @@ impl Instruction {
     pub fn decode_arm(instr: u32) -> Instruction {
         const CONDITION_MASK: u32 = 0b00001111_11111111_11111111_11111111;
 
+        log::trace!("Decoding {:8x}", instr);
+
         Instruction {
             condition: read_condition((instr & !CONDITION_MASK) >> 28),
             instruction: read_instruction_op(instr & CONDITION_MASK),
@@ -164,7 +166,7 @@ fn read_condition(cond: u32) -> Condition {
         12 => Condition::Gt,
         13 => Condition::Le,
         14 => Condition::Always,
-        _ => panic!("Unimplemented condition: {:b}", cond),
+        _ => panic!("read_condition unexpectedly called with: {:b}", cond),
     }
 }
 
