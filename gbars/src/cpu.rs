@@ -3,6 +3,7 @@ use crate::memory::Memory;
 use crate::execute;
 
 use log::{info, debug};
+use std::fmt;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Cpu {
@@ -140,5 +141,18 @@ impl Cpu {
             Register::R14 => self.r14,
             Register::R15 => self.r15,
         }
+    }
+}
+
+// To use the `{}` marker, the trait `fmt::Display` must be implemented
+// manually for the type.
+impl fmt::Display for Cpu {
+    // This trait requires `fmt` with this exact signature.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Write strictly the first element into the supplied output
+        // stream: `f`. Returns `fmt::Result` which indicates whether the
+        // operation succeeded or failed. Note that `write!` uses syntax which
+        // is very similar to `println!`.
+        write!(f, "pc {:8x} cspr {:8x} lr {:8x} sp {:8x}", self.r15, self.cpsr, self.r14, self.r13)
     }
 }

@@ -74,12 +74,12 @@ mod test {
     fn test_sign_extend() {
         let no_extend: u32 = 0b00111;
 
-        assert_eq!(no_extend, sign_extend_24(no_extend));
+        assert_eq!(no_extend as i32, sign_extend_24(no_extend));
 
         let extend = 0b0000000_11111111_11111111_11111000;
 
         assert_eq!(
-            0b11111111_11111111_11111111_11111000,
+            -8i32,
             sign_extend_24(extend)
         );
     }

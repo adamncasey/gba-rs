@@ -1,6 +1,9 @@
-int test_add();
 
 int _start()
 {
-    return test_add();
+    volatile int a = 5;
+    volatile int b = 2;
+    int c = a + b;
+
+    return c == 7;
 }
